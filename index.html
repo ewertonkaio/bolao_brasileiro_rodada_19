@@ -1,0 +1,833 @@
+<div id="root"></div>
+
+<!-- config.js é gerado pelo Netlify no build a partir das variáveis de ambiente -->
+<script src="config.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --pitch: #0a6b3f;
+    --pitch-deep: #064d2c;
+    --pitch-line: rgba(255,255,255,0.16);
+    --chalk: #f3f6f1;
+    --gold: #ffd233;
+    --gold-deep: #e0a800;
+    --net: #d8e0d4;
+    --ink: #0c2418;
+    --win: #18a558;
+    --partial: #f5a623;
+    --miss: #6b7d72;
+    --card: rgba(255,255,255,0.06);
+    --card-solid: #0e7344;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  #root {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--chalk);
+    min-height: 100%;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 64px, rgba(255,255,255,0.025) 64px 128px),
+      radial-gradient(circle at 50% -10%, #0c804c 0%, var(--pitch) 45%, var(--pitch-deep) 100%);
+    padding: 0 0 60px;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 18px; }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 46px 18px 30px;
+    position: relative;
+    border-bottom: 2px dashed var(--pitch-line);
+  }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(38px, 9vw, 78px);
+    line-height: 0.92; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--chalk);
+    text-shadow: 0 3px 0 rgba(0,0,0,0.25);
+  }
+  .hero h1 span { color: var(--gold); display: block; }
+  .hero .sub {
+    margin-top: 14px; font-size: 14px; color: var(--net);
+    font-weight: 500;
+  }
+
+  /* NAME GATE */
+  .gate {
+    margin: 28px auto 0; max-width: 420px;
+    background: var(--card); border: 1px solid var(--pitch-line);
+    border-radius: 16px; padding: 22px;
+    backdrop-filter: blur(4px);
+  }
+  .gate label {
+    display: block; font-size: 12px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--gold);
+    font-weight: 700; margin-bottom: 8px;
+  }
+  .gate input {
+    width: 100%; padding: 13px 14px; border-radius: 10px;
+    border: 1px solid var(--pitch-line); background: rgba(0,0,0,0.22);
+    color: var(--chalk); font-size: 16px; font-family: inherit;
+    font-weight: 600; outline: none; transition: border-color .15s;
+  }
+  .gate input:focus { border-color: var(--gold); }
+  .gate .existing { margin-top: 14px; }
+  .gate .existing-title {
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--net); margin-bottom: 8px;
+  }
+  .chip {
+    display: inline-block; margin: 0 6px 6px 0; padding: 6px 12px;
+    border-radius: 20px; background: rgba(255,255,255,0.08);
+    border: 1px solid var(--pitch-line); color: var(--chalk);
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s;
+  }
+  .chip:hover { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 6px; margin: 26px 0 20px;
+    background: rgba(0,0,0,0.2); padding: 5px; border-radius: 14px;
+    border: 1px solid var(--pitch-line);
+  }
+  .tab {
+    flex: 1; padding: 11px; text-align: center; border-radius: 10px;
+    font-size: 13px; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase; cursor: pointer; color: var(--net);
+    transition: all .15s; border: none; background: none; font-family: inherit;
+  }
+  .tab.active { background: var(--gold); color: var(--ink); }
+
+  /* CURRENT PLAYER BAR */
+  .playerbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--pitch-line);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 18px;
+  }
+  .playerbar .who { font-size: 14px; }
+  .playerbar .who b { color: var(--gold); font-weight: 800; }
+  .playerbar button {
+    background: none; border: 1px solid var(--pitch-line); color: var(--net);
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+    font-family: inherit; font-weight: 600; transition: all .15s;
+  }
+  .playerbar button:hover { color: var(--gold); border-color: var(--gold); }
+
+  /* MATCH CARD */
+  .match {
+    background: var(--card); border: 1px solid var(--pitch-line);
+    border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    transition: border-color .15s;
+  }
+  .match.locked { opacity: 0.96; border-color: rgba(255,210,51,0.25); }
+  .match-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .match-num {
+    font-family: 'Anton', sans-serif; font-size: 14px;
+    color: var(--gold); letter-spacing: 1px;
+  }
+  .match-date { font-size: 11px; color: var(--net); letter-spacing: .5px; }
+  .match-row {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
+  }
+  .team { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .team.home { text-align: right; justify-content: flex-end; }
+  .team.away { text-align: left; justify-content: flex-start; }
+  .team .nm { line-height: 1.1; }
+  .score-input {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+  }
+  .score-input input {
+    width: 46px; height: 46px; text-align: center; font-size: 20px;
+    font-weight: 800; border-radius: 10px; border: 1px solid var(--pitch-line);
+    background: rgba(0,0,0,0.25); color: var(--chalk); font-family: inherit;
+    outline: none; transition: border-color .15s;
+  }
+  .score-input input:focus { border-color: var(--gold); }
+  .score-input input:disabled { opacity: 0.55; cursor: not-allowed; }
+  .score-x { font-family: 'Anton', sans-serif; color: var(--net); font-size: 16px; }
+
+  .result-tag {
+    margin-top: 10px; text-align: center; font-size: 12px; font-weight: 700;
+    letter-spacing: .5px; padding: 5px; border-radius: 8px;
+  }
+  .result-tag.win { background: rgba(24,165,88,0.18); color: #4fe08a; }
+  .result-tag.partial { background: rgba(245,166,35,0.16); color: var(--partial); }
+  .result-tag.miss { background: rgba(107,125,114,0.18); color: var(--net); }
+  .result-tag.pending { background: rgba(255,255,255,0.05); color: var(--net); }
+
+  .save-bar { margin-top: 18px; text-align: center; }
+  .btn-primary {
+    background: var(--gold); color: var(--ink); border: none;
+    padding: 14px 34px; border-radius: 12px; font-size: 15px; font-weight: 800;
+    letter-spacing: .5px; cursor: pointer; font-family: inherit;
+    box-shadow: 0 4px 0 var(--gold-deep); transition: transform .1s, box-shadow .1s;
+  }
+  .btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--gold-deep); }
+  .btn-primary:disabled { opacity: .5; cursor: default; box-shadow: 0 4px 0 var(--gold-deep); }
+  .saved-note { margin-top: 12px; font-size: 13px; color: #4fe08a; font-weight: 600; min-height: 18px; }
+
+  /* ADMIN */
+  .admin-note {
+    font-size: 12px; color: var(--net); text-align: center;
+    margin-bottom: 16px; line-height: 1.5;
+  }
+  .admin-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 18px; font-size: 13px; color: var(--net);
+  }
+  .switch { position: relative; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.3);
+    border: 1px solid var(--pitch-line); border-radius: 24px; cursor: pointer;
+    transition: .2s;
+  }
+  .slider:before {
+    content: ""; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px;
+    background: var(--net); border-radius: 50%; transition: .2s;
+  }
+  .switch input:checked + .slider { background: var(--gold); border-color: var(--gold); }
+  .switch input:checked + .slider:before { transform: translateX(20px); background: var(--ink); }
+
+  /* LEADERBOARD */
+  .lb-empty {
+    text-align: center; padding: 50px 20px; color: var(--net); font-size: 14px;
+  }
+  .lb-row {
+    display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 14px;
+    background: var(--card); border: 1px solid var(--pitch-line);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+    transition: transform .15s;
+  }
+  .lb-row.podium-1 { border-color: var(--gold); background: rgba(255,210,51,0.08); }
+  .lb-rank {
+    font-family: 'Anton', sans-serif; font-size: 24px; text-align: center;
+    color: var(--net);
+  }
+  .lb-row.podium-1 .lb-rank { color: var(--gold); }
+  .lb-row.podium-2 .lb-rank { color: #d8d8d8; }
+  .lb-row.podium-3 .lb-rank { color: #cd9b6a; }
+  .lb-name { font-weight: 700; font-size: 16px; }
+  .lb-detail { font-size: 12px; color: var(--net); margin-top: 2px; }
+  .lb-pts { text-align: right; }
+  .lb-pts b { font-family: 'Anton', sans-serif; font-size: 26px; color: var(--gold); }
+  .lb-pts span { font-size: 11px; color: var(--net); display: block; letter-spacing: 1px; }
+
+  .scoring-key {
+    margin-top: 24px; padding: 16px; border-radius: 12px;
+    background: rgba(0,0,0,0.18); border: 1px solid var(--pitch-line);
+    font-size: 13px; line-height: 1.7; color: var(--net);
+  }
+  .scoring-key b { color: var(--gold); }
+
+  .pix-card {
+    background: var(--card); border: 1px solid var(--pitch-line);
+    border-radius: 16px; padding: 26px 20px; text-align: center; margin-bottom: 18px;
+  }
+  .pix-amount { font-family: 'Anton', sans-serif; font-size: 54px; color: var(--gold); line-height: 1; }
+  .pix-label { font-size: 13px; color: var(--net); margin-top: 4px; letter-spacing: .5px; }
+  .pix-paid { margin-top: 12px; color: #4fe08a; font-weight: 700; font-size: 14px; }
+  .pix-warn {
+    margin-top: 16px; padding: 12px; border-radius: 10px; font-size: 13px; line-height: 1.5;
+    background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.4); color: var(--partial);
+  }
+  .qr-wrap {
+    width: 200px; height: 200px; margin: 20px auto 0; padding: 10px;
+    background: #fff; border-radius: 12px;
+  }
+  .qr-wrap svg { width: 100%; height: 100%; display: block; }
+  .pix-key-box {
+    margin-top: 18px; padding: 12px; border-radius: 10px;
+    background: rgba(0,0,0,0.25); border: 1px solid var(--pitch-line);
+  }
+  .pix-key-title { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .pix-key-val { font-size: 11px; color: var(--net); word-break: break-all; font-family: monospace; line-height: 1.4; }
+  .btn-ghost {
+    margin-top: 14px; background: none; border: 1px solid var(--gold); color: var(--gold);
+    padding: 11px 22px; border-radius: 10px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .btn-ghost:hover { background: var(--gold); color: var(--ink); }
+  .pix-to { margin-top: 14px; font-size: 13px; color: var(--net); }
+  .pix-to b { color: var(--chalk); }
+  .pix-honor {
+    text-align: center; font-size: 12px; color: var(--net); line-height: 1.6;
+    margin-top: 20px; padding: 0 10px;
+  }
+  .pay-badge {
+    display: inline-block; margin-left: 8px; font-size: 10px; font-weight: 800;
+    letter-spacing: .5px; text-transform: uppercase; padding: 2px 7px; border-radius: 6px;
+    vertical-align: middle;
+  }
+  .pay-badge.paid { background: rgba(24,165,88,0.2); color: #4fe08a; }
+  .pay-badge.due { background: rgba(245,166,35,0.18); color: var(--partial); }
+
+  .footer-note {
+    text-align: center; font-size: 11px; color: var(--miss);
+    margin-top: 30px; line-height: 1.5;
+  }
+</style>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+// ---- Supabase ----
+const CFG = window.BOLAO_CONFIG || {};
+const sb = (window.supabase && CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY)
+  : null;
+const CONFIG_OK = !!sb;
+
+// Emblemas estilizados (não são escudos oficiais): cores + sigla de cada clube.
+// [fundo, faixa/detalhe, texto]
+const TEAMS = {
+  'Botafogo':      { abbr: 'BOT', c: ['#101010', '#ffffff', '#ffffff'] },
+  'Santos':        { abbr: 'SAN', c: ['#f4f4f4', '#101010', '#101010'] },
+  'Vitória':       { abbr: 'VIT', c: ['#c8102e', '#101010', '#ffffff'] },
+  'Vasco':         { abbr: 'VAS', c: ['#101010', '#c8102e', '#ffffff'] },
+  'Mirassol':      { abbr: 'MIR', c: ['#f5c518', '#0b6b3a', '#0b6b3a'] },
+  'Grêmio':        { abbr: 'GRE', c: ['#0d80bf', '#101010', '#ffffff'] },
+  'Fluminense':    { abbr: 'FLU', c: ['#7a0c2e', '#0b6b3a', '#ffffff'] },
+  'RB Bragantino': { abbr: 'RBB', c: ['#ffffff', '#c8102e', '#101010'] },
+  'Atlético-MG':   { abbr: 'CAM', c: ['#101010', '#ffffff', '#ffffff'] },
+  'Bahia':         { abbr: 'BAH', c: ['#005ca9', '#c8102e', '#ffffff'] },
+  'São Paulo':     { abbr: 'SAO', c: ['#ffffff', '#c8102e', '#101010'] },
+  'Athletico-PR':  { abbr: 'CAP', c: ['#c8102e', '#101010', '#ffffff'] },
+  'Chapecoense':   { abbr: 'CHA', c: ['#0b8a3d', '#ffffff', '#ffffff'] },
+  'Flamengo':      { abbr: 'FLA', c: ['#c8102e', '#101010', '#ffffff'] },
+  'Internacional': { abbr: 'INT', c: ['#c8102e', '#ffffff', '#ffffff'] },
+  'Cruzeiro':      { abbr: 'CRU', c: ['#0a3d8f', '#ffffff', '#ffffff'] },
+  'Corinthians':   { abbr: 'COR', c: ['#101010', '#ffffff', '#ffffff'] },
+  'Remo':          { abbr: 'REM', c: ['#0a3d8f', '#ffffff', '#ffffff'] },
+  'Coritiba':      { abbr: 'CFC', c: ['#0b6b3a', '#ffffff', '#ffffff'] },
+  'Palmeiras':     { abbr: 'PAL', c: ['#0b6b3a', '#ffffff', '#ffffff'] },
+};
+
+const MATCHES = [
+  { id: 'm1', home: 'Botafogo', away: 'Santos', date: 'qui 16/07 · 19:30' },
+  { id: 'm2', home: 'Vitória', away: 'Vasco', date: 'qui 16/07 · 19:30' },
+  { id: 'm3', home: 'Mirassol', away: 'Grêmio', date: 'qui 16/07 · 21:30' },
+  { id: 'm4', home: 'Fluminense', away: 'RB Bragantino', date: 'sex 17/07 · 21:30' },
+  { id: 'm5', home: 'Atlético-MG', away: 'Bahia', date: 'ter 21/07 · 19:30' },
+  { id: 'm6', home: 'São Paulo', away: 'Athletico-PR', date: 'qua 22/07 · 21:30' },
+  { id: 'm7', home: 'Chapecoense', away: 'Flamengo', date: 'qua 22/07 · 21:30' },
+  { id: 'm8', home: 'Internacional', away: 'Cruzeiro', date: 'qua 22/07 · 21:30' },
+  { id: 'm9', home: 'Corinthians', away: 'Remo', date: 'qui 23/07 · 19:30' },
+  { id: 'm10', home: 'Coritiba', away: 'Palmeiras', date: 'qui 23/07 · 21:30' },
+];
+
+// QR Code do Pix renderizado como SVG
+function QR({ text }) {
+  if (!text || typeof qrcode === 'undefined') return null;
+  let svg = '';
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    svg = qr.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+  } catch (e) { return null; }
+  return (
+    <div className="qr-wrap" dangerouslySetInnerHTML={{ __html: svg }} />
+  );
+}
+
+// emblema SVG estilizado a partir das cores do time
+function Crest({ team, size = 30 }) {
+  const t = TEAMS[team] || { abbr: '?', c: ['#444', '#888', '#fff'] };
+  const [bg, band, txt] = t.c;
+  const id = 'cl' + team.replace(/[^a-zA-Z]/g, '');
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" style={{flexShrink:0}}>
+      <defs><clipPath id={id}><path d="M20 2 L36 8 V21 C36 31 28 36 20 38 C12 36 4 31 4 21 V8 Z"/></clipPath></defs>
+      <g clipPath={'url(#' + id + ')'}>
+        <rect x="0" y="0" width="40" height="40" fill={bg}/>
+        <rect x="0" y="15" width="40" height="10" fill={band}/>
+        <text x="20" y="24" textAnchor="middle" fontSize="9" fontWeight="800"
+          fontFamily="Inter, sans-serif" fill={txt}>{t.abbr}</text>
+      </g>
+      <path d="M20 2 L36 8 V21 C36 31 28 36 20 38 C12 36 4 31 4 21 V8 Z"
+        fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// ---- data helpers (Supabase) ----
+async function loadGuesses() {
+  if (!sb) return {};
+  try {
+    const { data, error } = await sb.from('palpites').select('nome, dados');
+    if (error || !data) return {};
+    const out = {};
+    data.forEach(r => { out[r.nome] = r.dados || {}; });
+    return out;
+  } catch (e) { return {}; }
+}
+async function saveGuess(name, data) {
+  if (!sb) throw new Error('Supabase não configurado');
+  const { error } = await sb.from('palpites')
+    .upsert({ nome: name, dados: data }, { onConflict: 'nome' });
+  if (error) throw error;
+}
+async function loadResults() {
+  if (!sb) return {};
+  try {
+    const { data, error } = await sb.from('resultados').select('dados').eq('id', 1).maybeSingle();
+    if (error || !data) return {};
+    return data.dados || {};
+  } catch (e) { return {}; }
+}
+async function saveResults(data) {
+  if (!sb) throw new Error('Supabase não configurado');
+  const { error } = await sb.from('resultados')
+    .upsert({ id: 1, dados: data, senha: CFG.RESULTS_PASSWORD || '' });
+  if (error) throw error;
+}
+async function loadPayments() {
+  if (!sb) return {};
+  try {
+    const { data, error } = await sb.from('pagamentos').select('nome, pago');
+    if (error || !data) return {};
+    const out = {};
+    data.forEach(r => { out[r.nome] = !!r.pago; });
+    return out;
+  } catch (e) { return {}; }
+}
+
+// ---- Pix BR Code (fallback caso o MP retorne só o texto copia-e-cola) ----
+function crc16(str) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+function tlv(id, val) {
+  const len = val.length.toString().padStart(2, '0');
+  return id + len + val;
+}
+function pixPayload(key, name, amount, city = 'SAO PAULO') {
+  if (!key) return '';
+  const gui = tlv('00', 'br.gov.bcb.pix');
+  const k = tlv('01', key);
+  const mai = tlv('26', gui + k);
+  const nm = (name || 'RECEBEDOR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').slice(0, 25).toUpperCase();
+  const ct = city.normalize('NFD').replace(/[\u0300-\u036f]/g, '').slice(0, 15).toUpperCase();
+  let p = tlv('00', '01')
+    + mai
+    + tlv('52', '0000')
+    + tlv('53', '986')
+    + (amount ? tlv('54', Number(amount).toFixed(2)) : '')
+    + tlv('58', 'BR')
+    + tlv('59', nm)
+    + tlv('60', ct)
+    + tlv('62', tlv('05', '***'));
+  p += '6304';
+  return p + crc16(p);
+}
+
+// outcome of a scoreline: 'H','A','D' or null
+function outcome(h, a) {
+  if (h === '' || a === '' || h == null || a == null) return null;
+  const H = parseInt(h), A = parseInt(a);
+  if (isNaN(H) || isNaN(A)) return null;
+  if (H > A) return 'H';
+  if (A > H) return 'A';
+  return 'D';
+}
+// 3 = exact, 1 = right winner/draw, 0 = miss, null = no result yet
+function pointsFor(guess, result) {
+  const go = outcome(guess.h, guess.a), ro = outcome(result.h, result.a);
+  if (ro == null) return null;
+  if (go == null) return 0;
+  if (parseInt(guess.h) === parseInt(result.h) && parseInt(guess.a) === parseInt(result.a)) return 3;
+  if (go === ro) return 1;
+  return 0;
+}
+
+function App() {
+  const [name, setName] = useState('');
+  const [nameInput, setNameInput] = useState('');
+  const [tab, setTab] = useState('palpites');
+  const [guesses, setGuesses] = useState({});
+  const [results, setResults] = useState({});
+  const [payments, setPayments] = useState({});
+  const [pixMsg, setPixMsg] = useState('');
+  const [pixData, setPixData] = useState(null);
+  const [pixLoading, setPixLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [myGuess, setMyGuess] = useState({});
+  const [savedMsg, setSavedMsg] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [pwInput, setPwInput] = useState('');
+  const [resMsg, setResMsg] = useState('');
+
+  const refresh = useCallback(async () => {
+    const [g, r, p] = await Promise.all([loadGuesses(), loadResults(), loadPayments()]);
+    setGuesses(g); setResults(r); setPayments(p); setLoading(false);
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  // when a player is chosen, load their existing guess
+  useEffect(() => {
+    if (name && guesses[name]) setMyGuess(guesses[name]);
+  }, [name, guesses]);
+
+  // enquanto aguarda o pagamento, recarrega o status a cada 5s
+  useEffect(() => {
+    if (!checking) return;
+    if (payments[name]) {
+      setChecking(false);
+      setPixMsg('Pagamento confirmado! Obrigado. ✅');
+      setTimeout(() => setPixMsg(''), 4000);
+      return;
+    }
+    const t = setInterval(async () => {
+      const p = await loadPayments();
+      setPayments(p);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [checking, payments, name]);
+
+  const pickPlayer = (n) => {
+    const clean = n.trim();
+    if (!clean) return;
+    setName(clean);
+    setMyGuess(guesses[clean] || {});
+  };
+
+  const updateMy = (id, side, val) => {
+    const v = val.replace(/[^0-9]/g, '').slice(0, 2);
+    setMyGuess(prev => ({ ...prev, [id]: { ...(prev[id] || {h:'',a:''}), [side]: v } }));
+  };
+
+  const submit = async () => {
+    try {
+      await saveGuess(name, myGuess);
+      setSavedMsg('Palpites salvos! Boa sorte. ⚽');
+      await refresh();
+      setTimeout(() => setSavedMsg(''), 3500);
+    } catch (e) {
+      setSavedMsg('Erro ao salvar — confira a conexão.');
+      setTimeout(() => setSavedMsg(''), 4000);
+    }
+  };
+
+  // edita só localmente; persistência acontece no botão "Salvar resultados"
+  const updateResult = (id, side, val) => {
+    const v = val.replace(/[^0-9]/g, '').slice(0, 2);
+    setResults(prev => ({ ...prev, [id]: { ...(prev[id] || {h:'',a:''}), [side]: v } }));
+  };
+
+  const commitResults = async () => {
+    if (!CONFIG_OK) { setResMsg('App ainda não conectado ao banco.'); return; }
+    if (pwInput !== (CFG.RESULTS_PASSWORD || '')) {
+      setResMsg('Senha incorreta.');
+      setTimeout(() => setResMsg(''), 3000);
+      return;
+    }
+    try {
+      await saveResults(results);
+      setResMsg('Resultados oficiais salvos! Ranking atualizado.');
+      await refresh();
+      setTimeout(() => setResMsg(''), 3500);
+    } catch (e) {
+      setResMsg('Erro ao salvar resultados.');
+      setTimeout(() => setResMsg(''), 4000);
+    }
+  };
+
+  const gerarPix = async () => {
+    setPixLoading(true); setPixMsg('');
+    try {
+      const res = await fetch('/.netlify/functions/criar-pagamento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player: name }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPixMsg(data.error || 'Não foi possível gerar a cobrança.');
+      } else {
+        setPixData(data);
+        setChecking(true);
+      }
+    } catch (e) {
+      setPixMsg('Erro de conexão ao gerar o Pix.');
+    } finally {
+      setPixLoading(false);
+    }
+  };
+
+  const copyPix = async (payload) => {
+    try {
+      await navigator.clipboard.writeText(payload);
+      setPixMsg('Código Pix copiado!');
+      setTimeout(() => setPixMsg(''), 2500);
+    } catch (e) {
+      setPixMsg('Não consegui copiar — selecione manualmente.');
+      setTimeout(() => setPixMsg(''), 3500);
+    }
+  };
+  const board = Object.entries(guesses).map(([player, g]) => {
+    let total = 0, exact = 0, scored = 0;
+    MATCHES.forEach(m => {
+      const guess = g[m.id], res = results[m.id];
+      if (!guess || !res) return;
+      const p = pointsFor(guess, res);
+      if (p == null) return;
+      scored++;
+      total += p;
+      if (p === 3) exact++;
+    });
+    return { player, total, exact, scored };
+  }).sort((a, b) => b.total - a.total || b.exact - a.exact || a.player.localeCompare(b.player));
+
+  const anyResults = MATCHES.some(m => outcome((results[m.id]||{}).h, (results[m.id]||{}).a) != null);
+  const myComplete = MATCHES.every(m => {
+    const g = myGuess[m.id];
+    return g && g.h !== '' && g.a !== '' && g.h != null && g.a != null;
+  });
+
+  // ---------- NAME GATE ----------
+  if (!name) {
+    const existing = Object.keys(guesses);
+    return (
+      <div className="wrap">
+        <div className="hero">
+          <div className="eyebrow">Brasileirão 2026 · 19ª Rodada</div>
+          <h1>Bolão<span>da Galera</span></h1>
+          <div className="sub">A retomada pós-Copa. Crave os 10 placares, dispute com os amigos.</div>
+        </div>
+        <div className="gate">
+          {!CONFIG_OK && (
+            <div style={{marginBottom:16,padding:'10px 12px',borderRadius:8,
+              background:'rgba(245,166,35,0.15)',border:'1px solid rgba(245,166,35,0.4)',
+              color:'#f5a623',fontSize:12,lineHeight:1.5,textAlign:'center'}}>
+              Banco de dados não conectado. Confira as variáveis de ambiente no Netlify.
+            </div>
+          )}
+          <label htmlFor="nm">Seu nome</label>
+          <input id="nm" value={nameInput} placeholder="Ex: Ewerton"
+            onChange={e => setNameInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') pickPlayer(nameInput); }} />
+          <div style={{marginTop:14, textAlign:'center'}}>
+            <button className="btn-primary" onClick={() => pickPlayer(nameInput)}>Entrar</button>
+          </div>
+          {existing.length > 0 && (
+            <div className="existing">
+              <div className="existing-title">Já estão no bolão</div>
+              {existing.map(n => <span key={n} className="chip" onClick={() => pickPlayer(n)}>{n}</span>)}
+            </div>
+          )}
+        </div>
+        <div className="footer-note">
+          Todos jogam no mesmo link. Cada um entra com o próprio nome e seus palpites ficam salvos.
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- MAIN ----------
+  return (
+    <div className="wrap">
+      <div className="hero" style={{paddingBottom: 22}}>
+        <div className="eyebrow">Brasileirão 2026 · 19ª Rodada</div>
+        <h1 style={{fontSize: 'clamp(32px,7vw,58px)'}}>Bolão<span>da Galera</span></h1>
+      </div>
+
+      <div className="tabs">
+        <button className={'tab' + (tab==='palpites'?' active':'')} onClick={()=>setTab('palpites')}>Palpites</button>
+        <button className={'tab' + (tab==='pagar'?' active':'')} onClick={()=>setTab('pagar')}>Pagar</button>
+        <button className={'tab' + (tab==='ranking'?' active':'')} onClick={()=>setTab('ranking')}>Ranking</button>
+        <button className={'tab' + (tab==='resultados'?' active':'')} onClick={()=>setTab('resultados')}>Resultados</button>
+      </div>
+
+      <div className="playerbar">
+        <div className="who">Jogando como <b>{name}</b></div>
+        <button onClick={() => { setName(''); setNameInput(''); setMyGuess({}); }}>Trocar jogador</button>
+      </div>
+
+      {loading && <div className="lb-empty">Carregando o bolão…</div>}
+
+      {/* PALPITES */}
+      {!loading && tab === 'palpites' && (
+        <div>
+          {MATCHES.map((m, i) => {
+            const g = myGuess[m.id] || { h:'', a:'' };
+            const res = results[m.id];
+            const pts = res ? pointsFor(g, res) : null;
+            let tag = null;
+            if (pts === 3) tag = <div className="result-tag win">Cravou o placar! +3 pontos</div>;
+            else if (pts === 1) tag = <div className="result-tag partial">Acertou o resultado · +1 ponto</div>;
+            else if (pts === 0) tag = <div className="result-tag miss">Não foi dessa vez · 0 ponto</div>;
+            return (
+              <div className={'match' + (pts!=null?' locked':'')} key={m.id}>
+                <div className="match-meta">
+                  <span className="match-num">JOGO {i+1}</span>
+                  <span className="match-date">{m.date}</span>
+                </div>
+                <div className="match-row">
+                  <span className="team home"><span className="nm">{m.home}</span><Crest team={m.home} /></span>
+                  <div className="score-input">
+                    <input inputMode="numeric" value={g.h} onChange={e=>updateMy(m.id,'h',e.target.value)} aria-label={m.home + ' gols'} />
+                    <span className="score-x">×</span>
+                    <input inputMode="numeric" value={g.a} onChange={e=>updateMy(m.id,'a',e.target.value)} aria-label={m.away + ' gols'} />
+                  </div>
+                  <span className="team away"><Crest team={m.away} /><span className="nm">{m.away}</span></span>
+                </div>
+                {tag}
+              </div>
+            );
+          })}
+          <div className="save-bar">
+            <button className="btn-primary" onClick={submit} disabled={!myComplete}>
+              {myComplete ? 'Salvar meus palpites' : 'Preencha todos os 10 jogos'}
+            </button>
+            <div className="saved-note">{savedMsg}</div>
+          </div>
+        </div>
+      )}
+
+      {/* PAGAR */}
+      {!loading && tab === 'pagar' && (() => {
+        const fee = CFG.ENTRY_FEE || '10';
+        const iPaid = payments[name];
+        return (
+          <div>
+            <div className="pix-card">
+              <div className="pix-amount">R$ {fee}</div>
+              <div className="pix-label">Entrada do bolão · por jogador</div>
+              {iPaid && <div className="pix-paid">Você já está pago ✅</div>}
+
+              {!iPaid && !pixData && (
+                <button className="btn-primary" style={{marginTop:18}}
+                  onClick={gerarPix} disabled={pixLoading}>
+                  {pixLoading ? 'Gerando cobrança…' : 'Gerar QR Code Pix'}
+                </button>
+              )}
+
+              {!iPaid && pixData && (
+                <div>
+                  {pixData.qr_base64
+                    ? <div className="qr-wrap"><img alt="QR Code Pix" src={'data:image/png;base64,' + pixData.qr_base64} /></div>
+                    : <QR text={pixData.qr_code} />}
+                  <div className="pix-key-box">
+                    <div className="pix-key-title">Pix copia e cola</div>
+                    <div className="pix-key-val">{pixData.qr_code}</div>
+                  </div>
+                  <button className="btn-ghost" onClick={()=>copyPix(pixData.qr_code)}>Copiar código Pix</button>
+                  <div className="pix-to" style={{marginTop:16}}>
+                    {checking ? 'Aguardando confirmação do pagamento…' : 'Pague pelo app do seu banco. A confirmação aparece sozinha.'}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="saved-note" style={{textAlign:'center'}}>{pixMsg}</div>
+            <div className="pix-honor">
+              O pagamento é processado pelo Mercado Pago. Assim que cair, você é marcado como pago
+              automaticamente e aparece no ranking. 🤝
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* RANKING */}
+      {!loading && tab === 'ranking' && (
+        <div>
+          {board.length === 0 && <div className="lb-empty">Ninguém palpitou ainda. Seja o primeiro!</div>}
+          {board.map((row, i) => (
+            <div className={'lb-row podium-' + (i+1)} key={row.player}>
+              <div className="lb-rank">{i+1}º</div>
+              <div>
+                <div className="lb-name">
+                  {row.player}{row.player===name ? ' (você)' : ''}
+                  {payments[row.player]
+                    ? <span className="pay-badge paid">pago</span>
+                    : <span className="pay-badge due">pendente</span>}
+                </div>
+                <div className="lb-detail">{row.exact} placar{row.exact!==1?'es':''} cravado{row.exact!==1?'s':''} · {row.scored}/10 jogos apurados</div>
+              </div>
+              <div className="lb-pts"><b>{row.total}</b><span>PTS</span></div>
+            </div>
+          ))}
+          {!anyResults && board.length > 0 && (
+            <div className="footer-note">O ranking zera até os resultados oficiais serem lançados na aba “Resultados”.</div>
+          )}
+          <div className="scoring-key">
+            Como pontua: <b>3 pontos</b> ao cravar o placar exato · <b>1 ponto</b> ao acertar só quem venceu (ou o empate) · <b>0</b> ao errar.
+          </div>
+        </div>
+      )}
+
+      {/* RESULTADOS */}
+      {!loading && tab === 'resultados' && (
+        <div>
+          <div className="admin-note">
+            Aqui se lança o <b style={{color:'var(--gold)'}}>placar oficial</b> de cada jogo. Digite os placares, informe a <b style={{color:'var(--gold)'}}>senha</b> e salve — o resultado vale para o ranking de todo mundo.
+          </div>
+          {MATCHES.map((m, i) => {
+            const r = results[m.id] || { h:'', a:'' };
+            return (
+              <div className="match" key={m.id}>
+                <div className="match-meta">
+                  <span className="match-num">JOGO {i+1}</span>
+                  <span className="match-date">{m.date}</span>
+                </div>
+                <div className="match-row">
+                  <span className="team home"><span className="nm">{m.home}</span><Crest team={m.home} /></span>
+                  <div className="score-input">
+                    <input inputMode="numeric" value={r.h} onChange={e=>updateResult(m.id,'h',e.target.value)} aria-label={m.home + ' resultado'} />
+                    <span className="score-x">×</span>
+                    <input inputMode="numeric" value={r.a} onChange={e=>updateResult(m.id,'a',e.target.value)} aria-label={m.away + ' resultado'} />
+                  </div>
+                  <span className="team away"><Crest team={m.away} /><span className="nm">{m.away}</span></span>
+                </div>
+              </div>
+            );
+          })}
+          <div className="save-bar">
+            <input type="password" value={pwInput} placeholder="Senha dos resultados"
+              onChange={e=>setPwInput(e.target.value)}
+              style={{width:'100%',maxWidth:280,padding:'12px 14px',borderRadius:10,
+                border:'1px solid var(--pitch-line)',background:'rgba(0,0,0,0.22)',
+                color:'var(--chalk)',fontSize:15,fontFamily:'inherit',fontWeight:600,
+                outline:'none',marginBottom:14,textAlign:'center'}} />
+            <div>
+              <button className="btn-primary" onClick={commitResults}>Salvar resultados</button>
+            </div>
+            <div className="saved-note">{resMsg}</div>
+          </div>
+        </div>
+      )}
+
+      <div className="footer-note">
+        Datas e horários conforme tabela da CBF · sujeitos a alteração. Compartilhe este link com a galera.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
