@@ -290,9 +290,27 @@ const { useState, useEffect, useCallback } = React;
 
 // ---- Supabase ----
 const CFG = window.BOLAO_CONFIG || {};
-const sb = (window.supabase && CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY)
-  ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY)
-  : null;
+
+function initSupabase() {
+  try {
+    if (!window.supabase) return null;
+    const url = (CFG.SUPABASE_URL || '').trim();
+    const key = (CFG.SUPABASE_ANON_KEY || '').trim();
+    if (!url || !key) return null;
+    // valida o formato da URL antes de passar ao cliente
+    if (!/^https:\/\/.+\.supabase\.co\/?$/.test(url)) {
+      console.warn('[bolão] SUPABASE_URL com formato inesperado:', url);
+      // tenta validar como URL genérica; se falhar, aborta sem quebrar a página
+      try { new URL(url); } catch (e) { return null; }
+    }
+    return window.supabase.createClient(url, key);
+  } catch (e) {
+    console.error('[bolão] Falha ao iniciar Supabase:', e);
+    return null;
+  }
+}
+
+const sb = initSupabase();
 const CONFIG_OK = !!sb;
 
 // Emblemas estilizados (não são escudos oficiais): cores + sigla de cada clube.
